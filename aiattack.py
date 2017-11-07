@@ -94,6 +94,18 @@ def ai_attack(aihitstreak):
     attack = round(attack, 1)
     for ship in p1ships:
         if attack in ship:
+
+# Created by https://www.gitignore.io/api/visualstudiocode
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# End of https://www.gitignore.io/api/visualstudiocode
             print("The computer hit your ship!")
             ship.remove(attack)
             computerhitlist.append(attack)
@@ -125,8 +137,19 @@ while p1ships:
 # járásával megegyező irányban (a nem létező vagy már meglőtt mezőket
 # leszámítva) végiglövi a környező mezőket.
 # ha a környező mezők közül valamelyik talál, a találat felkerül a hitstreak listára.
+
+# Created by https://www.gitignore.io/api/visualstudiocode
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# End of https://www.gitignore.io/api/visualstudiocode
 # az utolsó két hit alapján megállapítja a hajó tájolását.
 # a hajó tájolása és a hitstreak alapján végigpróbálja a meglőtt két mezővel szomszédos mezőket.
 # ha megint nem talál, akkor a másik irányba kell próbálkoznia, amíg nem érzékeli, hogy az ellenfél
 # hajóinak listája csökken. ha az ellenfél hajója megsemmisül, akkor a hitstreak = 0
-
