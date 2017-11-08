@@ -309,6 +309,7 @@ def print_board(attacked_hit_list, attacked_list):
         print(n)
         n = n + 1
 
+clear_board()
 print("Welcome to Battleship!\n"
       "User interaction is by typing in coordinates, with lowercase letters, like this: 'a1' or\n"
       "'g10'. First, each player will place their ships one by one on the ocean by deciding\n"
