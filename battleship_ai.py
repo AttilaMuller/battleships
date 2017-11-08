@@ -47,6 +47,7 @@ aihitstreak = []
 
 
 def convert_input(i):
+    ''' Convert user input into floating-point coordinates '''
     a = string.ascii_lowercase.index(i[0])
     b = float(i[1:]) / 10 - 0.1
     c = round((a + b), 1)
@@ -54,24 +55,24 @@ def convert_input(i):
 
 
 def clear_board():
+    ''' Clear the terminal '''
     os.system('clear')
 
 
-def check_ocean(c, i, o):
+def check_ocean(horizon, coordinate, length):
+    ''' Check if a ship with certain length could be fitted on the board
+    with given starting coordinates
+    '''
     try:
-        if isinstance(i, str):
-            f = string.ascii_lowercase.index(i[0])
-            s = float(i[1:]) - 1
+        if isinstance(coordinate, str):
+            f = string.ascii_lowercase.index(coordinate[0])
+            s = float(coordinate[1:]) - 1
         else:
-            f = int(i)
-            s = (i - f) * 10
-        if c == "h" and f + o > 10:
+            f = int(coordinate)
+            s = (coordinate - f) * 10
+        if horizon == "h" and f + length > 10 or f > 9:
             return False
-        elif f > 9:
-            return False
-        elif c == "v" and s + o > 10:
-            return False
-        elif s > 9:
+        elif horizon == "v" and s + length > 10 or s > 9:
             return False
         else:
             return True
@@ -79,62 +80,78 @@ def check_ocean(c, i, o):
         return False
 
 
-def check_usedspace(s, u, l, a, b):
+def check_usedspace(ship, used_space, length, a, b):
+    ''' Check if the new ship's coordinates are already in use, if they are not,
+    append them to the new ship's list and used coordinates list
+    '''
     if isinstance(b, str):
         b = convert_input(b)
-    s.append(round(b, 1))
-    if a == "h":
-        for i in range(1, l):  # That's one, and lowercase l
-            s.append(round((b + i), 1))
-    else:
-        for i in range(1, l):
-            s.append(round((b + i * 0.1), 1))
-    g = list(set(s) & set(u))
-    if not g:
-        u.append(round(b, 1))
+    ship.append(round(b, 1))
+    for i in range(1, length):
         if a == "h":
-            for i in range(1, l):  # That's one, and lowercase l
-                u.append(round((b + i), 1))
+            ship.append(round((b + i), 1))
         else:
-            for i in range(1, l):
-                u.append(round((b + i * 0.1), 1))
+            ship.append(round((b + i * 0.1), 1))
+    g = list(set(ship) & set(used_space))
+    if not g:
+        used_space.append(round(b, 1))
+        for i in range(1, length):
+            if a == "h":
+                used_space.append(round((b + i), 1))
+            else:
+                used_space.append(round((b + i * 0.1), 1))
         return True
     else:
-        for i in s:
-            s.remove(i)
+        while ship:
+            for i in ship:
+                ship.remove(i)
         return False
 
 
-def computer_create_ship(s, l, u):
-    ''' Creates s-type ship with l length in u space '''
+def computer_create_ship(ship, length, used_space):
+    ''' Create ship for the computer.
+
+    Arguments:
+    ship -- an empty list, where the coordinates will be appended
+    length -- the number of coordinates generated for each ship
+    used_space -- list of coordinates where the computer already has ships to avoid collision
+    '''
     horizon = ['h', 'v']
     a = random.choice(horizon)
     b = random.randrange(10) + random.randrange(10) / 10
-    while not check_ocean(a, b, l) or not check_usedspace(s, u, l, a, b):
+    while not check_ocean(a, b, length) or not check_usedspace(ship, used_space, length, a, b):
         b = random.randrange(10) + random.randrange(10) / 10
 
 
 def check_horizon(a):
+    ''' Check if the player has given valid input for ship alignment. '''
     if a == "v" or a == "h":
         return True
     else:
         return False
 
 
-def create_ship(s, l, u):
-    ''' Creates s-type ship with l length in u space '''
-    a = input("It is " + str(l) + " units long. Enter 'h' to place it "
+def create_ship(ship, length, used_space):
+    ''' Create ship for the player.
+
+    Arguments:
+    ship -- an empty list, where the coordinates will be appended
+    length -- the number of coordinates generated for each ship
+    used_space -- list of coordinates where player already has ships to avoid collision
+    '''
+    a = input("It is " + str(length) + " units long. Enter 'h' to place it "
               "horizontally or 'v' to place it vertically: ")
     while not check_horizon(a):
         a = input("Enter 'h' to place it horizontally or 'v' to place it vertically: ")
     b = input("Give the starting coordinates. Your ship will be placed accordingly: ")
-    while not check_ocean(a, b, l) or not check_usedspace(s, u, l, a, b):
+    while not check_ocean(a, b, length) or not check_usedspace(ship, used_space, length, a, b):
         b = input("The ocean is big, but not THAT big. Give other coordinates: ")
     clear_board()
-    print_table(u)
+    print_table(used_space)
 
 
 def p1_attack():
+    ''' Ask the user for attack coordinates, calculate the attack, notify user about success '''
     clear_board()
     print("Player 1 board:")
     print_board(p1hitlist, p1attacklist)
@@ -170,6 +187,13 @@ def p1_attack():
 
 
 def ai_attack(aihitstreak):
+    ''' Random attack coordinates until find ship, try to guess and sink ship until ship
+    is destroyed, then start again
+
+    aihitstreak -- the list of coordinates where the AI last hit a ship,
+    if ship is destroyed, list is emptied
+    '''
+    clear_board()
     global ailasthit
     hit = False
     if not aihitstreak:
@@ -196,8 +220,7 @@ def ai_attack(aihitstreak):
               (aihitstreak[0] - 1) not in computerhitlist):
             attack = aihitstreak[0] - 1
     elif len(aihitstreak) > 1:
-        if ailasthit:  # ha az irány jó, folytatja a sorban lövöldözést
-            # guessmove calculates the ai's next target after this attack
+        if ailasthit:
             if round(aihitstreak[0] - aihitstreak[1], 1) == -0.1:
                 attack = round(aihitstreak[-1] + 0.1, 1)
                 guessnextmove = round(attack + 0.1)
@@ -213,7 +236,7 @@ def ai_attack(aihitstreak):
             if (guessnextmove < 0 or guessnextmove > 9.9 or guessnextmove in computerattacklist or
                     guessnextmove in computerhitlist or round(attack % 1, 1) == 0 or round(attack % 1, 1) == 0.9):
                 ailasthit = False
-        else:  # ha az irány rossz, átugrik a túloldalra.
+        else:
             if round(aihitstreak[0] - aihitstreak[1], 1) == 0.1:
                 attack = aihitstreak[0] + 0.1
                 del aihitstreak[1:]
@@ -223,35 +246,25 @@ def ai_attack(aihitstreak):
     attack = round(attack, 1)
     for ship in p1ships:
         if attack in ship:
-            clear_board()
             print("The computer hit your ship!")
             ship.remove(attack)
             computerhitlist.append(attack)
             aihitstreak.append(attack)
             hit = True
             ailasthit = True
-            print_board(computerhitlist, computerattacklist)
-            time.sleep(3)
         if not ship:
-            clear_board()
             p1ships.remove(ship)
             del aihitstreak[:]
             print("Your ship was destroyed!")
             ailasthit = False
-            print_board(computerhitlist, computerattacklist)
-            time.sleep(3)            
     if not hit:
-        clear_board()
         print("The computer missed!")
         computerattacklist.append(attack)
         ailasthit = False
-        print_board(computerhitlist, computerattacklist)
-        time.sleep(3)        
     if not p1ships:
-        clear_board()
         print("The computer has won!")
-        print_board(computerhitlist, computerattacklist)
-        time.sleep(3)
+    print_board(computerhitlist, computerattacklist)
+    time.sleep(3)
 
 
 def visualize_ships(row, table):
@@ -277,6 +290,7 @@ def print_table(table):
 
 
 def check_gameover():
+    ''' Check if any player's fleet is destroyed '''
     if not p1ships or not computer_ships:
         return True
     else:
@@ -344,7 +358,6 @@ computer_create_ship(cruiserc, 3, computer_usedspace)
 computer_create_ship(submarinec, 3, computer_usedspace)
 computer_create_ship(destroyerc, 2, computer_usedspace)
 
-print_table(computer_usedspace)
 
 while not check_gameover():
     p1_attack()
