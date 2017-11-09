@@ -3,55 +3,23 @@ import random
 import os
 import time
 
-'''Messages'''
-carrier = "Deploy your carrier!"
-battleship = "Deploy your battleship!"
-cruiser = "Deploy your cruiser!"
-submarine = "Deploy your submarine!"
-destroyer = "Deploy your destroyer!"
-
-'''Player Data'''
-carrier1 = []
-battleship1 = []
-cruiser1 = []
-submarine1 = []
-destroyer1 = []
-p1ships = [carrier1, battleship1, cruiser1, submarine1, destroyer1]
-p1usedspace = []
-p1attacklist = []
-p1hitlist = []
-
-'''Coordinates'''
-row = [[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-       [0.1, 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1],
-       [0.2, 1.2, 2.2, 3.2, 4.2, 5.2, 6.2, 7.2, 8.2, 9.2],
-       [0.3, 1.3, 2.3, 3.3, 4.3, 5.3, 6.3, 7.3, 8.3, 9.3],
-       [0.4, 1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.4, 9.4],
-       [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5],
-       [0.6, 1.6, 2.6, 3.6, 4.6, 5.6, 6.6, 7.6, 8.6, 9.6],
-       [0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7, 8.7, 9.7],
-       [0.8, 1.8, 2.8, 3.8, 4.8, 5.8, 6.8, 7.8, 8.8, 9.8],
-       [0.9, 1.9, 2.9, 3.9, 4.9, 5.9, 6.9, 7.9, 8.9, 9.9]]
-
-
-'''Ships'''
-carrierc = []
-battleshipc = []
-cruiserc = []
-submarinec = []
-destroyerc = []
-computer_ships = [carrierc, battleshipc, cruiserc, submarinec, destroyerc]
-computer_usedspace = []
-computerattacklist = []
-computerhitlist = []
-ailasthit = False
-aihitstreak = []
-
 
 def main():
+    ''' Main Battleship function '''
 
-    '''Game start'''
-    clear_board()
+    '''Ships'''
+    carrierc = []
+    battleshipc = []
+    cruiserc = []
+    submarinec = []
+    destroyerc = []
+    computer_ships = [carrierc, battleshipc, cruiserc, submarinec, destroyerc]
+    computer_usedspace = []
+    computerattacklist = []
+    computerhitlist = []
+    ailasthit = False
+    aihitstreak = []
+
     print("Welcome to Battleship!\n"
           "User interaction is by typing in coordinates, with lowercase letters, like this: 'a1' or\n"
           "'g10'. First, each player will place their ships one by one on the ocean by deciding\n"
@@ -67,8 +35,26 @@ def main():
     input("Press Enter to continue")
     clear_board()
 
+    '''Messages'''
+    carrier = "Deploy your carrier!"
+    battleship = "Deploy your battleship!"
+    cruiser = "Deploy your cruiser!"
+    submarine = "Deploy your submarine!"
+    destroyer = "Deploy your destroyer!"
+
+    '''Player Data'''
+    carrier1 = []
+    battleship1 = []
+    cruiser1 = []
+    submarine1 = []
+    destroyer1 = []
+    p1ships = [carrier1, battleship1, cruiser1, submarine1, destroyer1]
+    p1usedspace = []
+    p1attacklist = []
+    p1hitlist = []
+
     '''Player places ships'''
-    print("Player 1, choose the coordinates for your fleet!)")
+    print("Player 1, choose the coordinates for your fleet!")
     print_table(p1usedspace)
     print(carrier)
     create_ship(carrier1, 5, p1usedspace)
@@ -89,11 +75,19 @@ def main():
     computer_create_ship(destroyerc, 2, computer_usedspace)
 
     '''Changing turns'''
-    while not check_gameover():
-        p1_attack()
-        if check_gameover():
+    while not check_gameover(p1ships, computer_ships):
+        p1_attack(p1hitlist, p1attacklist, computer_ships)
+        if check_gameover(p1ships, computer_ships):
             break
-        ai_attack(aihitstreak)
+        ai_attack(aihitstreak, ailasthit, computerhitlist, computerattacklist, p1ships)
+
+
+def create_row(row):
+    ''' Creates reference coordinates for printing board '''
+    for i in range(10):
+        individual_row = [i / 10 + k for k in range(10)]
+        row.append(individual_row)
+    return row
 
 
 def convert_input(i):
@@ -200,7 +194,7 @@ def create_ship(ship, length, used_space):
     print_table(used_space)
 
 
-def p1_attack():
+def p1_attack(p1hitlist, p1attacklist, computer_ships):
     ''' Ask the user for attack coordinates, calculate the attack, notify user about success '''
     clear_board()
     print("Player 1 board:")
@@ -237,7 +231,7 @@ def p1_attack():
         time.sleep(3)
 
 
-def ai_attack(aihitstreak):
+def ai_attack(aihitstreak, ailasthit, computerhitlist, computerattacklist, p1ships):
     ''' Random attack coordinates until find ship, try to guess and sink ship until ship
     is destroyed, then start again
 
@@ -245,21 +239,14 @@ def ai_attack(aihitstreak):
     if ship is destroyed, list is emptied
     '''
     clear_board()
-    global ailasthit
     hit = False
     if not aihitstreak:
         attack = random.randrange(10) + random.randrange(10) / 10
         while attack in computerhitlist or attack in computerattacklist:
             attack = random.randrange(10) + random.randrange(10) / 10
     elif len(aihitstreak) == 1:
-        if (
-            round(
-                aihitstreak[0] - 0.1,
-                1) not in computerattacklist and round(
-                (aihitstreak[0] - 0.1) % 1,
-                1) != 0.9 and round(
-                aihitstreak[0] - 0.1,
-                1) not in computerhitlist):
+        if (round(aihitstreak[0] - 0.1, 1) not in computerattacklist and round((aihitstreak[0] - 0.1) % 1, 1) != 0.9 and
+           round(aihitstreak[0] - 0.1, 1) not in computerhitlist):
             attack = aihitstreak[0] - 0.1
         elif ((aihitstreak[0] + 1) < 10 and (aihitstreak[0] + 1) not in computerattacklist and
               (aihitstreak[0] + 1) not in computerhitlist):
@@ -267,9 +254,11 @@ def ai_attack(aihitstreak):
         elif ((aihitstreak[0] + 0.1) % 1 != 0 and (aihitstreak[0] + 0.1) not in computerattacklist and
               (aihitstreak[0] + 0.1) not in computerhitlist):
             attack = aihitstreak[0] + 0.1
-        elif ((aihitstreak[0] - 1) > 0 and (aihitstreak[0] - 1) not in computerattacklist and
-              (aihitstreak[0] - 1) not in computerhitlist):
+        elif (round(aihitstreak[0] - 1) > 0 and round(aihitstreak[0] - 1) not in computerattacklist and
+              round(aihitstreak[0] - 1) not in computerhitlist):
             attack = aihitstreak[0] - 1
+        else:
+            print("I have no direction in life")
     elif len(aihitstreak) > 1:
         if ailasthit:
             if round(aihitstreak[0] - aihitstreak[1], 1) == -0.1:
@@ -284,8 +273,10 @@ def ai_attack(aihitstreak):
             elif round(aihitstreak[0] - aihitstreak[1], 1) == -1:
                 attack = round(aihitstreak[-1] + 1, 1)
                 guessnextmove = round(attack + 1, 1)
+            else:
+                print("I have nowhere to go")
             if (guessnextmove < 0 or guessnextmove > 9.9 or guessnextmove in computerattacklist or
-                    guessnextmove in computerhitlist or round(attack % 1, 1) == 0 or round(attack % 1, 1) == 0.9):
+               guessnextmove in computerhitlist or round(attack % 1, 1) == 0 or round(attack % 1, 1) == 0.9):
                 ailasthit = False
         else:
             if round(aihitstreak[0] - aihitstreak[1], 1) == 0.1:
@@ -294,6 +285,9 @@ def ai_attack(aihitstreak):
             elif round(aihitstreak[0] - aihitstreak[1], 1) == -1:
                 attack = aihitstreak[0] - 1
                 del aihitstreak[1:]
+    if not attack:
+        attack = random.randrange(10) + random.randrange(10) / 10
+        del aihitstreak[0]
     attack = round(attack, 1)
     for ship in p1ships:
         if attack in ship:
@@ -304,7 +298,6 @@ def ai_attack(aihitstreak):
             hit = True
             ailasthit = True
         if not ship:
-            clear_board()
             p1ships.remove(ship)
             del aihitstreak[:]
             print("Your ship was destroyed!")
@@ -317,6 +310,7 @@ def ai_attack(aihitstreak):
         print("The computer has won!")
     print_board(computerhitlist, computerattacklist)
     time.sleep(3)
+    return ailasthit
 
 
 def visualize_ships(row, table):
@@ -334,6 +328,8 @@ def visualize_ships(row, table):
 
 def print_table(table):
     print("A B C D E F G H I J")
+    row = []
+    create_row(row)
     n = 1
     while n < 11:
         visualize_ships(eval("row" + "[" + str(n-1) + "]"), table)
@@ -341,9 +337,9 @@ def print_table(table):
         n = n + 1
 
 
-def check_gameover():
+def check_gameover(a, b):
     ''' Check if any player's fleet is destroyed '''
-    if not p1ships or not computer_ships:
+    if not a or not b:
         return True
     else:
         return False
@@ -369,6 +365,8 @@ def visualize_attacks(row, attacked_hit_list, attacked_list):
 
 def print_board(attacked_hit_list, attacked_list):
     print("A B C D E F G H I J")
+    row = []
+    create_row(row)
     n = 1
     while n < 11:
         visualize_attacks(eval("row" + "[" + str(n-1) + "]"), attacked_hit_list, attacked_list)
