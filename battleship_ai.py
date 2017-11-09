@@ -3,7 +3,6 @@ import random
 import os
 import time
 
-
 '''Messages'''
 carrier = "Deploy your carrier!"
 battleship = "Deploy your battleship!"
@@ -22,17 +21,20 @@ p1usedspace = []
 p1attacklist = []
 p1hitlist = []
 
-row1 = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
-row2 = [0.1, 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1]
-row3 = [0.2, 1.2, 2.2, 3.2, 4.2, 5.2, 6.2, 7.2, 8.2, 9.2]
-row4 = [0.3, 1.3, 2.3, 3.3, 4.3, 5.3, 6.3, 7.3, 8.3, 9.3]
-row5 = [0.4, 1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.4, 9.4]
-row6 = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5]
-row7 = [0.6, 1.6, 2.6, 3.6, 4.6, 5.6, 6.6, 7.6, 8.6, 9.6]
-row8 = [0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7, 8.7, 9.7]
-row9 = [0.8, 1.8, 2.8, 3.8, 4.8, 5.8, 6.8, 7.8, 8.8, 9.8]
-row10 = [0.9, 1.9, 2.9, 3.9, 4.9, 5.9, 6.9, 7.9, 8.9, 9.9]
+'''Coordinates'''
+row = [[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+       [0.1, 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1, 9.1],
+       [0.2, 1.2, 2.2, 3.2, 4.2, 5.2, 6.2, 7.2, 8.2, 9.2],
+       [0.3, 1.3, 2.3, 3.3, 4.3, 5.3, 6.3, 7.3, 8.3, 9.3],
+       [0.4, 1.4, 2.4, 3.4, 4.4, 5.4, 6.4, 7.4, 8.4, 9.4],
+       [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5],
+       [0.6, 1.6, 2.6, 3.6, 4.6, 5.6, 6.6, 7.6, 8.6, 9.6],
+       [0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7, 8.7, 9.7],
+       [0.8, 1.8, 2.8, 3.8, 4.8, 5.8, 6.8, 7.8, 8.8, 9.8],
+       [0.9, 1.9, 2.9, 3.9, 4.9, 5.9, 6.9, 7.9, 8.9, 9.9]]
 
+
+'''Ships'''
 carrierc = []
 battleshipc = []
 cruiserc = []
@@ -44,6 +46,54 @@ computerattacklist = []
 computerhitlist = []
 ailasthit = False
 aihitstreak = []
+
+
+def main():
+
+    '''Game start'''
+    clear_board()
+    print("Welcome to Battleship!\n"
+          "User interaction is by typing in coordinates, with lowercase letters, like this: 'a1' or\n"
+          "'g10'. First, each player will place their ships one by one on the ocean by deciding\n"
+          "to place them horizontally or vertically and entering a starting coordinate, like this:\n"
+          "Vertical placement:\n"
+          "▨ <- Starting point\n"
+          "▨\n"
+          "▨\n"
+          "▨\n"
+          "Horizontal placement:\n"
+          "Starting point -> ▨ ▨ ▨ ▨"
+          "\n")
+    input("Press Enter to continue")
+    clear_board()
+
+    '''Player places ships'''
+    print("Player 1, choose the coordinates for your fleet!)")
+    print_table(p1usedspace)
+    print(carrier)
+    create_ship(carrier1, 5, p1usedspace)
+    print(battleship)
+    create_ship(battleship1, 4, p1usedspace)
+    print(cruiser)
+    create_ship(cruiser1, 3, p1usedspace)
+    print(submarine)
+    create_ship(submarine1, 3, p1usedspace)
+    print(destroyer)
+    create_ship(destroyer1, 2, p1usedspace)
+
+    '''AI places ships'''
+    computer_create_ship(carrierc, 5, computer_usedspace)
+    computer_create_ship(battleshipc, 4, computer_usedspace)
+    computer_create_ship(cruiserc, 3, computer_usedspace)
+    computer_create_ship(submarinec, 3, computer_usedspace)
+    computer_create_ship(destroyerc, 2, computer_usedspace)
+
+    '''Changing turns'''
+    while not check_gameover():
+        p1_attack()
+        if check_gameover():
+            break
+        ai_attack(aihitstreak)
 
 
 def convert_input(i):
@@ -173,6 +223,7 @@ def p1_attack():
         if not s:
             computer_ships.remove(s)
             print("Player 1 destroyed a ship!")
+            time.sleep(3)
     if hit == 0:
         clear_board()
         print("Miss!")
@@ -253,6 +304,7 @@ def ai_attack(aihitstreak):
             hit = True
             ailasthit = True
         if not ship:
+            clear_board()
             p1ships.remove(ship)
             del aihitstreak[:]
             print("Your ship was destroyed!")
@@ -284,7 +336,7 @@ def print_table(table):
     print("A B C D E F G H I J")
     n = 1
     while n < 11:
-        visualize_ships(eval("row" + str(n)), table)
+        visualize_ships(eval("row" + "[" + str(n-1) + "]"), table)
         print(n)
         n = n + 1
 
@@ -319,48 +371,8 @@ def print_board(attacked_hit_list, attacked_list):
     print("A B C D E F G H I J")
     n = 1
     while n < 11:
-        visualize_attacks(eval("row" + str(n)), attacked_hit_list, attacked_list)
+        visualize_attacks(eval("row" + "[" + str(n-1) + "]"), attacked_hit_list, attacked_list)
         print(n)
         n = n + 1
 
-clear_board()
-print("Welcome to Battleship!\n"
-      "User interaction is by typing in coordinates, with lowercase letters, like this: 'a1' or\n"
-      "'g10'. First, each player will place their ships one by one on the ocean by deciding\n"
-      "to place them horizontally or vertically and entering a starting coordinate, like this:\n"
-      "Vertical placement:\n"
-      "▨ <- Starting point\n"
-      "▨\n"
-      "▨\n"
-      "▨\n"
-      "Horizontal placement:\n"
-      "Starting point -> ▨ ▨ ▨ ▨"
-      "\n")
-input("Press Enter to continue")
-
-
-print("Player 1, choose the coordinates for your fleet!)")
-print_table(p1usedspace)
-print(carrier)
-create_ship(carrier1, 5, p1usedspace)
-print(battleship)
-create_ship(battleship1, 4, p1usedspace)
-print(cruiser)
-create_ship(cruiser1, 3, p1usedspace)
-print(submarine)
-create_ship(submarine1, 3, p1usedspace)
-print(destroyer)
-create_ship(destroyer1, 2, p1usedspace)
-
-computer_create_ship(carrierc, 5, computer_usedspace)
-computer_create_ship(battleshipc, 4, computer_usedspace)
-computer_create_ship(cruiserc, 3, computer_usedspace)
-computer_create_ship(submarinec, 3, computer_usedspace)
-computer_create_ship(destroyerc, 2, computer_usedspace)
-
-
-while not check_gameover():
-    p1_attack()
-    if check_gameover():
-        break
-    ai_attack(aihitstreak)
+main()
